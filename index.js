@@ -12,6 +12,8 @@ const db = lowdb(adapter)
 
 const PhotoModel = require('./db/models/photo')
 
+const CommentModel = require('./db/models/comment')
+
 server.use(middlewares)
 
 server.use(jsonServer.bodyParser)
@@ -24,21 +26,54 @@ server.use((req, res, next)=>{
 })
 
 server.post('/api/sendphotos',(req, res)=>{
-    const photos = []
+    var errMsg = ''
+    var success = false;
     req.body.data.privateFeeds.list.forEach((item)=>{
-        photos.push({
+        var photo = new PhotoModel({
             pid:item.id,
             caption:item.caption
         })
+        photo.save((err,result)=>{
+            if(err){
+                errMsg = err.message
+            }else{
+                success = true
+            }
+        })
     })
+    if(!success){
+        res.jsonp({success:true,message: 'photos were successfully stored.'})
+    }else{
+        res.jsonp({success:false,message:errMsg})
+    }
+})
 
-    PhotoModel.insertMany(photos,(err,result)=>{
-        if (err) {
-            res.jsonp({success:false, message:err.message})
-        } else {
-            res.jsonp({success:true,message:result.length + 'photos were successfully stored.'})
-        }
+server.post('/api/sendcomments',(req,res)=>{
+    var errMsg = ''
+    var success = false;
+    const photoId = req.body.photoId
+    req.body.data.shortVideoCommentList.commentList.forEach((item)=>{
+        var comment  = new CommentModel({
+            commentId:item.commentId,
+            photoId:photoId,
+            authorId:item.authorId,
+            authorName:item.authorName,
+            content:item.content,
+            timestamp:item.timestamp
+        })  
+        comment.save((err,result)=>{
+            if(err){
+                errMsg = err.message
+            }else{
+                success = true
+            }
+        })
     })
+    if(!success){
+        res.jsonp({success:true,message: 'comments were successfully stored.'})
+    }else{
+        res.jsonp({success:false,message:errMsg})
+    }
 })
 
 server.use(router)
