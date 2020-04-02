@@ -1,5 +1,5 @@
 var mongoose = require('mongoose')
-mongoose.connect('mongodb://localhost:27017/douyin')
+mongoose.connect('mongodb://localhost:27017/kuaishou')
 
 mongoose.connection.on('connected', function () { 
     console.log('Mongoose connection opened')
